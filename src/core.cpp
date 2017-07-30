@@ -1,32 +1,31 @@
+#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 #include<stdio.h>
 #include "util.h"
 #include<Windows.h>
 #include<string>
 #include<stdlib.h>
-#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 
-const unsigned int interval = 600; //In seconds
 
-bool boostDownlaodSDK() {
-	util::highPriority("DownloadSDKServer.exe");
-	return 0;
+const unsigned int interval = 1; //In seconds
+/*
+bool boostDownloadSDK() {
+	util::highPriority("DownloadSDKServer");
+	util::highPriority("ThunderPlatform");
+		return 0;
 }
+*/
 
-bool checkMainProgramStatus() {
+/*
+int checkMainProgramStatus() {
 	util::lookupInit();
-	bool result = util::lookup("Thunder.exe");
-	if (result) { util::lookupCleanup(); return 0; }
-	if (!result) { util::lookupCleanup(); return 1; }
-	return 0;
+	bool foundTargetEXE = util::lookup("Thunder");
+	if (foundTargetEXE == 0) { util::lookupCleanup(); return 0; }
+	if (foundTargetEXE == 1) { util::lookupCleanup(); return 1; }
 }
+*/
 
 int main() {
-	bool loop = true;
-	while(loop) {
-		boostDownlaodSDK();
-		if (!checkMainProgramStatus()) {
-			return 0;
-		};
+	while (bool loop = 1) {
 		Sleep((interval*1000));
 	}
 }

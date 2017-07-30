@@ -12,18 +12,45 @@ ifstream ReadTasklist;
 string tasklistTemp;
 string tasklist;
 
-int sysExecute(string cmd) {
-	bool result = WinExec(cmd.c_str(), SW_HIDE);
-	if (result == 0) {
-		return 0;
-	}
-	else {
-		return 1;
-	}
+void sysExecute(string cmd) {
+
+	cmd = R"(cmd /q /c ")" + cmd + R"(")";
+
+
+	TCHAR *commandInTCHAR=new TCHAR[cmd.size()+1];
+	commandInTCHAR[cmd.size()]=0;
+	std::copy(cmd.begin(),cmd.end(), commandInTCHAR);
+
+
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	si.wShowWindow = SW_HIDE;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+
+	bool result = CreateProcess(NULL,   // No module name (use command line)
+		commandInTCHAR,        // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		0,              // No creation flags
+		NULL,           // Use parent's environment block
+		NULL,           // Use parent's starting directory 
+		&si,            // Pointer to STARTUPINFO structure
+		&pi)           // Pointer to PROCESS_INFORMATION structure
+		;
+	//bool result = WinExec(string(R"(cmd /c ")"+cmd+R"(")").c_str(), SW_HIDE);
+
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
 }
 
 void util::lookupInit() {
-	system("tasklist > tasklist.txt");
+	sysExecute("tasklist > tasklist.txt");
 	ReadTasklist.open("tasklist.txt");
 	while (ReadTasklist >> tasklistTemp) {
 		tasklist += tasklistTemp;
@@ -41,35 +68,10 @@ bool util::lookup(string programName) {
 
 void util::lookupCleanup() {
 	tasklist = "";
-	system("del tasklist.txt");
+	sysExecute("del tasklist.txt");
 }
 
-/*
-DEPRECATED FUNCTION
 
-bool util::lookup(string processName) {
-ifstream Reader;
-string temp;
-char receiver[128];
-sprintf(receiver, "tasklist /FI \"IMAGENAME eq %s\" > result.txt", processName.c_str());
-system(receiver);
-Reader.open("result.txt");
-
-if (Reader.is_open()) {
-while (!Reader.eof()) {
-getline(Reader, temp);
-if (temp.find("Image Name") != string::npos) {
-Reader.close();
-system("del result.txt");
-return 1;
-}
-}
-Reader.close();
-}
-system("del result.txt");
-return 0;
-}
-*/
 string util::toUpperString(string str) {
 	for (std::string::iterator it = str.begin(); it != str.end(); ++it)
 		*it = (char)toupper(*it);
@@ -93,8 +95,8 @@ void util::visualTimer(std::string message, unsigned int currentTime, unsigned i
 
 void util::highPriority(string processName) {
 	char executor[128];
-	sprintf(executor, "wmic process where \"name='%s.exe'\" call setpriority 128 > nul", processName.c_str());
-	system(executor);
+	sprintf(executor, "wmic process where \"name='%s.exe'\" call setpriority 128", processName.c_str());
+	sysExecute(string(executor));
 }
 
 void util::lowPriority(string processName) {
@@ -118,8 +120,8 @@ void util::lowPriority(string processName) {
 	execute += "'\" call setpriority 64 > nul";
 	*/
 
-	sprintf(executor, "wmic process where \"name='%s.exe'\" call setpriority 64 > nul", processName.c_str());
-	system(executor);
+	sprintf(executor, "wmic process where \"name='%s.exe'\" call setpriority 64", processName.c_str());
+	sysExecute(string(executor));
 }
 
 void util::visualProgress(string message, int currentProgress, int progressGoal) {
@@ -195,7 +197,7 @@ string util::getCurrentTime() {
 void util::killTask(string taskname) {
 	char buffer[128];
 	sprintf(buffer, "taskkill /f /im %s.exe", taskname.c_str());
-	system(buffer);
+	sysExecute(string(buffer));
 }
 
 

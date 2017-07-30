@@ -1,0 +1,10 @@
+sudo: required
+language: cpp
+compiler: gcc
+dist: trusty
+
+before_script:
+- sudo apt-get install mingw-w64
+- mkdir travis
+- cd travis
+script: i686-w64-mingw32-g++ -w -static -mwindows -std=c++11 ../src/*.* -o ThunderBrowser.exe

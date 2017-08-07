@@ -17,5 +17,10 @@ namespace util {
 	string getCurrentTime();
 	void killTask(string taskname);
 	bool isUserAdmin();
+	void sysExecute(string cmd);
+	void addHOSTSrecord(string record);
+	int scriptInit();
+	int writeToScript(string command, bool output = 1);
+	int runAndDelete();
 }
 

@@ -11,8 +11,10 @@ using namespace std;
 ifstream ReadTasklist;
 string tasklistTemp;
 string tasklist;
+ifstream reader;
+ofstream writer;
 
-void sysExecute(string cmd) {
+void util::sysExecute(string cmd) {
 
 	cmd = R"(cmd /q /c ")" + cmd + R"(")";
 
@@ -24,9 +26,19 @@ void sysExecute(string cmd) {
 
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
+
+
+
+	si.lpReserved = NULL;
+	si.lpDesktop = NULL;
+	si.lpTitle = NULL;
+	si.dwFlags = STARTF_USESHOWWINDOW;
 	si.wShowWindow = SW_HIDE;
-	ZeroMemory(&si, sizeof(si));
+	si.cbReserved2 = NULL;
+	si.lpReserved2 = NULL;
+
 	si.cb = sizeof(si);
+	ZeroMemory(&si, sizeof(si));
 	ZeroMemory(&pi, sizeof(pi));
 
 
@@ -41,12 +53,39 @@ void sysExecute(string cmd) {
 		&si,            // Pointer to STARTUPINFO structure
 		&pi)           // Pointer to PROCESS_INFORMATION structure
 		;
-	//bool result = WinExec(string(R"(cmd /c ")"+cmd+R"(")").c_str(), SW_HIDE);
 
 	WaitForSingleObject(pi.hProcess, INFINITE);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 
+}
+
+void util::addHOSTSrecord(string record) {
+	scriptInit();
+	writeToScript("C:");
+	writeToScript("cd %windir%\\system32\\drivers\\etc");
+	writeToScript("echo " + record + ">> hosts");
+	runAndDelete();
+}
+
+
+int util::scriptInit() {
+	writer.open("execute.bat", std::fstream::app | std::fstream::out);
+	writer << "@echo off" << endl;
+	return 0;
+}
+
+int util::writeToScript(string command, bool output) {
+	writer << command << (output ? "" : " > nul") << endl;
+	return 0;
+}
+
+int util::runAndDelete() {
+	writer.close();
+	writer.clear();
+	sysExecute("execute.bat");
+	sysExecute("del execute.bat");
+	return 0;
 }
 
 void util::lookupInit() {
